@@ -1,0 +1,15 @@
+syntax = "proto3";
+option go_package = "github.com/1saswata/chess-broadcast-engine/internal/pb";
+
+message Move {
+    int32 UMID = 1;
+    Player current_player = 2;
+    string starting_square = 3;
+    string destination_square = 4;
+}
+
+enum Player {
+    VALUE_UNSPECIFIED = 0;
+    WHITE = 1;
+    BLACK = 2;
+}
