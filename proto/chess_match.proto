@@ -1,0 +1,17 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+option go_package = "github.com/1saswata/chess-broadcast-engine/internal/pb";
+
+message Move {
+    int32 match_id = 1;
+    Player current_player = 2;
+    string starting_square = 3;
+    string destination_square = 4;
+    google.protobuf.Timestamp timestamp = 5;
+}
+
+enum Player {
+    PLAYER_UNSPECIFIED = 0;
+    PLAYER_WHITE = 1;
+    PLAYER_BLACK = 2;
+}
