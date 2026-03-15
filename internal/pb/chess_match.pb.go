@@ -9,6 +9,7 @@ package pb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -24,22 +25,22 @@ const (
 type Player int32
 
 const (
-	Player_VALUE_UNSPECIFIED Player = 0
-	Player_WHITE             Player = 1
-	Player_BLACK             Player = 2
+	Player_PLAYER_UNSPECIFIED Player = 0
+	Player_PLAYER_WHITE       Player = 1
+	Player_PLAYER_BLACK       Player = 2
 )
 
 // Enum value maps for Player.
 var (
 	Player_name = map[int32]string{
-		0: "VALUE_UNSPECIFIED",
-		1: "WHITE",
-		2: "BLACK",
+		0: "PLAYER_UNSPECIFIED",
+		1: "PLAYER_WHITE",
+		2: "PLAYER_BLACK",
 	}
 	Player_value = map[string]int32{
-		"VALUE_UNSPECIFIED": 0,
-		"WHITE":             1,
-		"BLACK":             2,
+		"PLAYER_UNSPECIFIED": 0,
+		"PLAYER_WHITE":       1,
+		"PLAYER_BLACK":       2,
 	}
 )
 
@@ -72,10 +73,11 @@ func (Player) EnumDescriptor() ([]byte, []int) {
 
 type Move struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	UMID              int32                  `protobuf:"varint,1,opt,name=UMID,proto3" json:"UMID,omitempty"`
+	MatchId           int32                  `protobuf:"varint,1,opt,name=match_id,json=matchId,proto3" json:"match_id,omitempty"`
 	CurrentPlayer     Player                 `protobuf:"varint,2,opt,name=current_player,json=currentPlayer,proto3,enum=Player" json:"current_player,omitempty"`
 	StartingSquare    string                 `protobuf:"bytes,3,opt,name=starting_square,json=startingSquare,proto3" json:"starting_square,omitempty"`
 	DestinationSquare string                 `protobuf:"bytes,4,opt,name=destination_square,json=destinationSquare,proto3" json:"destination_square,omitempty"`
+	Timestamp         *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -110,9 +112,9 @@ func (*Move) Descriptor() ([]byte, []int) {
 	return file_proto_chess_match_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Move) GetUMID() int32 {
+func (x *Move) GetMatchId() int32 {
 	if x != nil {
-		return x.UMID
+		return x.MatchId
 	}
 	return 0
 }
@@ -121,7 +123,7 @@ func (x *Move) GetCurrentPlayer() Player {
 	if x != nil {
 		return x.CurrentPlayer
 	}
-	return Player_VALUE_UNSPECIFIED
+	return Player_PLAYER_UNSPECIFIED
 }
 
 func (x *Move) GetStartingSquare() string {
@@ -138,20 +140,28 @@ func (x *Move) GetDestinationSquare() string {
 	return ""
 }
 
+func (x *Move) GetTimestamp() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Timestamp
+	}
+	return nil
+}
+
 var File_proto_chess_match_proto protoreflect.FileDescriptor
 
 const file_proto_chess_match_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/chess_match.proto\"\xa2\x01\n" +
-	"\x04Move\x12\x12\n" +
-	"\x04UMID\x18\x01 \x01(\x05R\x04UMID\x12.\n" +
+	"\x17proto/chess_match.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe3\x01\n" +
+	"\x04Move\x12\x19\n" +
+	"\bmatch_id\x18\x01 \x01(\x05R\amatchId\x12.\n" +
 	"\x0ecurrent_player\x18\x02 \x01(\x0e2\a.PlayerR\rcurrentPlayer\x12'\n" +
 	"\x0fstarting_square\x18\x03 \x01(\tR\x0estartingSquare\x12-\n" +
-	"\x12destination_square\x18\x04 \x01(\tR\x11destinationSquare*5\n" +
-	"\x06Player\x12\x15\n" +
-	"\x11VALUE_UNSPECIFIED\x10\x00\x12\t\n" +
-	"\x05WHITE\x10\x01\x12\t\n" +
-	"\x05BLACK\x10\x02B8Z6github.com/1saswata/chess-broadcast-engine/internal/pbb\x06proto3"
+	"\x12destination_square\x18\x04 \x01(\tR\x11destinationSquare\x128\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp*D\n" +
+	"\x06Player\x12\x16\n" +
+	"\x12PLAYER_UNSPECIFIED\x10\x00\x12\x10\n" +
+	"\fPLAYER_WHITE\x10\x01\x12\x10\n" +
+	"\fPLAYER_BLACK\x10\x02B8Z6github.com/1saswata/chess-broadcast-engine/internal/pbb\x06proto3"
 
 var (
 	file_proto_chess_match_proto_rawDescOnce sync.Once
@@ -168,16 +178,18 @@ func file_proto_chess_match_proto_rawDescGZIP() []byte {
 var file_proto_chess_match_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_chess_match_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_chess_match_proto_goTypes = []any{
-	(Player)(0),  // 0: Player
-	(*Move)(nil), // 1: Move
+	(Player)(0),                   // 0: Player
+	(*Move)(nil),                  // 1: Move
+	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
 }
 var file_proto_chess_match_proto_depIdxs = []int32{
 	0, // 0: Move.current_player:type_name -> Player
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: Move.timestamp:type_name -> google.protobuf.Timestamp
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_chess_match_proto_init() }
