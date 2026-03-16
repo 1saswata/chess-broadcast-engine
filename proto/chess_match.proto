@@ -2,6 +2,8 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 option go_package = "github.com/1saswata/chess-broadcast-engine/internal/pb";
 
+package pb;
+
 message Move {
     int32 match_id = 1;
     Player current_player = 2;
@@ -14,4 +16,13 @@ enum Player {
     PLAYER_UNSPECIFIED = 0;
     PLAYER_WHITE = 1;
     PLAYER_BLACK = 2;
+}
+
+message MoveResponse {
+    bool success =  1;
+    string msg = 2;
+}
+
+service ChessIngestService {
+    rpc RecordMove(Move) returns (MoveResponse) {}
 }

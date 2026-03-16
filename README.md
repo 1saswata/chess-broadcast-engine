@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 1
-* **Current Task:** Protocol Buffers & The .proto Contract - You will define a strict, heavily versioned, and hyper-efficient binary contract using Protocol Buffers to handle the ingestion of live chess moves. This ensures type safety, drastically reduces network latency, and lowers CPU overhead for our broadcasting engine.
+* **Current Task:** The gRPC Ingest Server - Transform your isolated protobuf contract into a fully functional gRPC server. You will define a service in your .proto file, generate the gRPC server code, and implement the interface to successfully receive a Move payload over a network connection.
