@@ -74,7 +74,7 @@ func (Player) EnumDescriptor() ([]byte, []int) {
 type Move struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	MatchId           int32                  `protobuf:"varint,1,opt,name=match_id,json=matchId,proto3" json:"match_id,omitempty"`
-	CurrentPlayer     Player                 `protobuf:"varint,2,opt,name=current_player,json=currentPlayer,proto3,enum=Player" json:"current_player,omitempty"`
+	CurrentPlayer     Player                 `protobuf:"varint,2,opt,name=current_player,json=currentPlayer,proto3,enum=pb.Player" json:"current_player,omitempty"`
 	StartingSquare    string                 `protobuf:"bytes,3,opt,name=starting_square,json=startingSquare,proto3" json:"starting_square,omitempty"`
 	DestinationSquare string                 `protobuf:"bytes,4,opt,name=destination_square,json=destinationSquare,proto3" json:"destination_square,omitempty"`
 	Timestamp         *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
@@ -147,21 +147,80 @@ func (x *Move) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
+type MoveResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Msg           string                 `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MoveResponse) Reset() {
+	*x = MoveResponse{}
+	mi := &file_proto_chess_match_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MoveResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MoveResponse) ProtoMessage() {}
+
+func (x *MoveResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chess_match_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MoveResponse.ProtoReflect.Descriptor instead.
+func (*MoveResponse) Descriptor() ([]byte, []int) {
+	return file_proto_chess_match_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *MoveResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *MoveResponse) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
 var File_proto_chess_match_proto protoreflect.FileDescriptor
 
 const file_proto_chess_match_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/chess_match.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe3\x01\n" +
+	"\x17proto/chess_match.proto\x12\x02pb\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe6\x01\n" +
 	"\x04Move\x12\x19\n" +
-	"\bmatch_id\x18\x01 \x01(\x05R\amatchId\x12.\n" +
-	"\x0ecurrent_player\x18\x02 \x01(\x0e2\a.PlayerR\rcurrentPlayer\x12'\n" +
+	"\bmatch_id\x18\x01 \x01(\x05R\amatchId\x121\n" +
+	"\x0ecurrent_player\x18\x02 \x01(\x0e2\n" +
+	".pb.PlayerR\rcurrentPlayer\x12'\n" +
 	"\x0fstarting_square\x18\x03 \x01(\tR\x0estartingSquare\x12-\n" +
 	"\x12destination_square\x18\x04 \x01(\tR\x11destinationSquare\x128\n" +
-	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp*D\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\":\n" +
+	"\fMoveResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x10\n" +
+	"\x03msg\x18\x02 \x01(\tR\x03msg*D\n" +
 	"\x06Player\x12\x16\n" +
 	"\x12PLAYER_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fPLAYER_WHITE\x10\x01\x12\x10\n" +
-	"\fPLAYER_BLACK\x10\x02B8Z6github.com/1saswata/chess-broadcast-engine/internal/pbb\x06proto3"
+	"\fPLAYER_BLACK\x10\x022@\n" +
+	"\x12ChessIngestService\x12*\n" +
+	"\n" +
+	"RecordMove\x12\b.pb.Move\x1a\x10.pb.MoveResponse\"\x00B8Z6github.com/1saswata/chess-broadcast-engine/internal/pbb\x06proto3"
 
 var (
 	file_proto_chess_match_proto_rawDescOnce sync.Once
@@ -176,17 +235,20 @@ func file_proto_chess_match_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_chess_match_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_chess_match_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_proto_chess_match_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_chess_match_proto_goTypes = []any{
-	(Player)(0),                   // 0: Player
-	(*Move)(nil),                  // 1: Move
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(Player)(0),                   // 0: pb.Player
+	(*Move)(nil),                  // 1: pb.Move
+	(*MoveResponse)(nil),          // 2: pb.MoveResponse
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_proto_chess_match_proto_depIdxs = []int32{
-	0, // 0: Move.current_player:type_name -> Player
-	2, // 1: Move.timestamp:type_name -> google.protobuf.Timestamp
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
+	0, // 0: pb.Move.current_player:type_name -> pb.Player
+	3, // 1: pb.Move.timestamp:type_name -> google.protobuf.Timestamp
+	1, // 2: pb.ChessIngestService.RecordMove:input_type -> pb.Move
+	2, // 3: pb.ChessIngestService.RecordMove:output_type -> pb.MoveResponse
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -203,9 +265,9 @@ func file_proto_chess_match_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_chess_match_proto_rawDesc), len(file_proto_chess_match_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_proto_chess_match_proto_goTypes,
 		DependencyIndexes: file_proto_chess_match_proto_depIdxs,
