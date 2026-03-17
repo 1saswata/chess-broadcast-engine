@@ -15,37 +15,54 @@ import (
 
 const bufSize = 1024 * 1024
 
-var lis = bufconn.Listen(bufSize)
-
-func bufDialer(ctx context.Context, target string) (net.Conn, error) {
-	return lis.Dial()
-}
 func TestMove(t *testing.T) {
+	var lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterChessIngestServiceServer(s, IngestServer{})
+	pb.RegisterChessIngestServiceServer(s, NewIngestServer())
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			log.Fatal(err)
 		}
 	}()
-
-	conn, err := grpc.NewClient("passthrough:///bufnet", grpc.WithContextDialer(bufDialer),
+	defer s.GracefulStop()
+	conn, err := grpc.NewClient("passthrough:///bufnet", grpc.WithContextDialer(
+		func(ctx context.Context, target string) (net.Conn, error) {
+			return lis.Dial()
+		}),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
 	client := pb.NewChessIngestServiceClient(conn)
-	t.Run("Happy Path", func(t *testing.T) {
-		mr, err := client.RecordMove(context.Background(), &pb.Move{
-			MatchId:           1,
-			CurrentPlayer:     pb.Player_PLAYER_WHITE,
-			StartingSquare:    "C5",
-			DestinationSquare: "C6",
-			Timestamp:         timestamppb.Now(),
+
+	tests := []struct {
+		name string
+		move pb.Move
+		want bool
+	}{
+		{
+			name: "Happy Path",
+			move: pb.Move{
+				MatchId:           1,
+				CurrentPlayer:     pb.Player_PLAYER_WHITE,
+				StartingSquare:    "C5",
+				DestinationSquare: "C6",
+				Timestamp:         timestamppb.Now(),
+			},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mr, err := client.RecordMove(context.Background(), &tt.move)
+			if err != nil {
+				t.Error("Error - ", err.Error())
+			}
+			if mr.Success != tt.want {
+				t.Errorf("Want %t Got %t", tt.want, mr.Success)
+			}
 		})
-		if mr.Success != true || err != nil {
-			t.Error("Want - Success Got - ", mr.String())
-		}
-	})
+	}
 }
