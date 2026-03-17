@@ -40,3 +40,9 @@ go.work.sum
 .vscode/
 *.swp
 .DS_Store
+
+## -- Message Queue --
+
+rabbitmq/
+mnesia/
+.rabbitmq/

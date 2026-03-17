@@ -15,10 +15,17 @@ import (
 
 const bufSize = 1024 * 1024
 
+type MockPublisher struct {
+}
+
+func (m MockPublisher) PublishMove(ctx context.Context, move []byte) error {
+	return nil
+}
+
 func TestMove(t *testing.T) {
 	var lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterChessIngestServiceServer(s, NewIngestServer())
+	pb.RegisterChessIngestServiceServer(s, NewIngestServer(MockPublisher{}))
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			log.Fatal(err)
@@ -38,12 +45,12 @@ func TestMove(t *testing.T) {
 
 	tests := []struct {
 		name string
-		move pb.Move
+		move *pb.Move
 		want bool
 	}{
 		{
 			name: "Happy Path",
-			move: pb.Move{
+			move: &pb.Move{
 				MatchId:           1,
 				CurrentPlayer:     pb.Player_PLAYER_WHITE,
 				StartingSquare:    "C5",
@@ -56,7 +63,7 @@ func TestMove(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mr, err := client.RecordMove(context.Background(), &tt.move)
+			mr, err := client.RecordMove(context.Background(), tt.move)
 			if err != nil {
 				t.Error("Error - ", err.Error())
 			}
