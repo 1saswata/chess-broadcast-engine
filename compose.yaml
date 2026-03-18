@@ -1,0 +1,9 @@
+services:
+  RabbitMQ:
+    image: rabbitmq:4.2-management-alpine
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq

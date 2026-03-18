@@ -20,5 +20,5 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 
 ## Current Status
 
-* **Current Week:** 1
-* **Current Task:** The gRPC Ingest Server - Transform your isolated protobuf contract into a fully functional gRPC server. You will define a service in your .proto file, generate the gRPC server code, and implement the interface to successfully receive a Move payload over a network connection.
+* **Current Week:** 2
+* **Current Task:** Docker Compose & The Publisher Interface - Spin up a local RabbitMQ instance using Docker Compose. Then, modify your gRPC server to accept a "Publisher" interface so it can push the incoming chess moves to the message broker instead of just logging them.
