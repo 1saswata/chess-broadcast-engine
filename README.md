@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 2
-* **Current Task:** Docker Compose & The Publisher Interface - Spin up a local RabbitMQ instance using Docker Compose. Then, modify your gRPC server to accept a "Publisher" interface so it can push the incoming chess moves to the message broker instead of just logging them.
+* **Current Task:** The AMQP Publisher & The main.go Wiring - Implement the MovePublisher interface using the official RabbitMQ Go client (amqp091-go), and write a main.go file to wire the gRPC server and the RabbitMQ publisher together into a running application.
