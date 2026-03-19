@@ -16,7 +16,7 @@ func (rp *RabbitMQPublisher) PublishMove(ctx context.Context, move []byte) error
 		"",
 		false,
 		false,
-		amqp091.Publishing{ContentType: "text/plain", Body: move},
+		amqp091.Publishing{ContentType: "application/x-protobuf", Body: move},
 	)
 	return err
 }
