@@ -49,11 +49,11 @@ func NewRabbitMQPublisher(connURL string) (*RabbitMQPublisher, error) {
 }
 
 func (rp *RabbitMQPublisher) Close() error {
-	err := rp.conn.Close()
+	err := rp.ch.Close()
 	if err != nil {
 		return err
 	}
-	err = rp.ch.Close()
+	err = rp.conn.Close()
 	if err != nil {
 		return err
 	}

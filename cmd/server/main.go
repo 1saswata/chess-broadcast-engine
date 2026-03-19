@@ -45,7 +45,10 @@ func main() {
 	defer cancel()
 	done := make(chan int, 1)
 	go func() {
-		rp.Close()
+		err = rp.Close()
+		if err != nil {
+			slog.Error("Error closing rabbitMQ connection", "Error", err)
+		}
 		s.GracefulStop()
 		close(done)
 	}()
