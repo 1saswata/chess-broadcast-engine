@@ -7,7 +7,8 @@ import (
 )
 
 type RabbitMQPublisher struct {
-	ch *amqp091.Channel
+	ch   *amqp091.Channel
+	conn *amqp091.Connection
 }
 
 func (rp *RabbitMQPublisher) PublishMove(ctx context.Context, move []byte) error {
@@ -23,11 +24,12 @@ func (rp *RabbitMQPublisher) PublishMove(ctx context.Context, move []byte) error
 
 func NewRabbitMQPublisher(connURL string) (*RabbitMQPublisher, error) {
 	rp := &RabbitMQPublisher{}
-	conn, err := amqp091.Dial(connURL)
+	var err error
+	rp.conn, err = amqp091.Dial(connURL)
 	if err != nil {
 		return nil, err
 	}
-	rp.ch, err = conn.Channel()
+	rp.ch, err = rp.conn.Channel()
 	if err != nil {
 		return nil, err
 	}
@@ -44,4 +46,16 @@ func NewRabbitMQPublisher(connURL string) (*RabbitMQPublisher, error) {
 		return nil, err
 	}
 	return rp, nil
+}
+
+func (rp *RabbitMQPublisher) Close() error {
+	err := rp.conn.Close()
+	if err != nil {
+		return err
+	}
+	err = rp.ch.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }

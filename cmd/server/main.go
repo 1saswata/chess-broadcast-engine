@@ -35,6 +35,7 @@ func main() {
 		}
 	}()
 	defer s.GracefulStop()
+	defer rp.Close()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	<-c
