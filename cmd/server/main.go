@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/1saswata/chess-broadcast-engine/internal/broker"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
@@ -29,15 +31,29 @@ func main() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterChessIngestServiceServer(s, ingestServer)
+	slog.Info("Starting the server...")
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			slog.Error("Error serving connection", "Error", err)
 		}
 	}()
-	defer s.GracefulStop()
-	defer rp.Close()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	<-c
-	slog.Info("Server shutting down... ")
+	slog.Info("Server is shutting down... ")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	done := make(chan int, 1)
+	go func() {
+		rp.Close()
+		s.GracefulStop()
+		close(done)
+	}()
+	select {
+	case <-done:
+		slog.Info("Server closed Gracefully")
+	case <-ctx.Done():
+		slog.Info("Graceful shutdown timeout, force closing the server...")
+		s.Stop()
+	}
 }
