@@ -20,5 +20,5 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 
 ## Current Status
 
-* **Current Week:** 2
-* **Current Task:** The AMQP Publisher & The main.go Wiring - Implement the MovePublisher interface using the official RabbitMQ Go client (amqp091-go), and write a main.go file to wire the gRPC server and the RabbitMQ publisher together into a running application.
+* **Current Week:** 3
+* **Current Task:** The Distributed WebSocket Hub - Build a completely separate executable. This new binary will connect to RabbitMQ, declare a temporary, exclusive queue, bind that queue to your chess_broadcast exchange, and listen for incoming Protocol Buffer messages.
