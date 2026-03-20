@@ -3,6 +3,8 @@ package main
 import (
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"github.com/rabbitmq/amqp091-go"
@@ -45,6 +47,10 @@ func main() {
 		false,
 		nil,
 	)
+	if err != nil {
+		slog.Error("Error declaring queue", "Error", err)
+		os.Exit(1)
+	}
 	err = ch.QueueBind(
 		q.Name,
 		"",
@@ -69,13 +75,19 @@ func main() {
 		slog.Error("Error registering consumer", "Error", err)
 		os.Exit(1)
 	}
-	move := pb.Move{}
-	for d := range msgs {
-		err = proto.Unmarshal(d.Body, &move)
-		if err != nil {
-			slog.Error("Error serializing move", "Error", err)
+	go func() {
+		for d := range msgs {
+			var move pb.Move
+			err = proto.Unmarshal(d.Body, &move)
+			if err != nil {
+				slog.Error("Error serializing move", "Error", err)
+			}
+			slog.Info("Move", "Staring square", move.StartingSquare,
+				"Destination square", move.DestinationSquare)
 		}
-		slog.Info("Move", "Staring square", move.StartingSquare,
-			"Destination square", move.DestinationSquare)
-	}
+	}()
+	wait := make(chan os.Signal, 1)
+	signal.Notify(wait, syscall.SIGINT, syscall.SIGTERM)
+	<-wait
+	slog.Info("Closing down the server")
 }
