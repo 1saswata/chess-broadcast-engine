@@ -41,3 +41,7 @@ func (hub *Hub) Run() {
 		}
 	}
 }
+
+func (hub *Hub) Broadcast(m []byte) {
+	hub.broadcast <- m
+}
