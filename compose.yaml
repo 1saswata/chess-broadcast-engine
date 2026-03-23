@@ -7,3 +7,7 @@ services:
       - "15672:15672"
     volumes:
       - ./rabbitmq:/var/lib/rabbitmq
+  Redis:
+    image: redis:8.6-alpine
+    ports:
+      - "6379:6379"

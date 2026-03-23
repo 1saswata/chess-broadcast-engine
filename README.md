@@ -20,5 +20,5 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 
 ## Current Status
 
-* **Current Week:** 3
-* **Current Task:** The Distributed WebSocket Hub - Build a completely separate executable. This new binary will connect to RabbitMQ, declare a temporary, exclusive queue, bind that queue to your chess_broadcast exchange, and listen for incoming Protocol Buffer messages.
+* **Current Week:** 4
+* **Current Task:** The Redis Cache Layer - Spin up a local Redis instance using Docker Compose. Create a strict Cache interface in Ingest Node, and implement a Redis client that updates the latest move in memory every time a move is recorded.
