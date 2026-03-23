@@ -1,15 +1,10 @@
 package websocket
 
-import (
-	"sync"
-)
-
 type Hub struct {
 	broadcast  chan []byte
 	register   chan *Client
 	unregister chan *Client
 	clients    map[*Client]bool
-	sync.RWMutex
 }
 
 func NewHub() *Hub {
@@ -25,19 +20,18 @@ func (hub *Hub) Run() {
 	for {
 		select {
 		case client := <-hub.register:
-			hub.Lock()
 			hub.clients[client] = true
-			hub.Unlock()
 		case client := <-hub.unregister:
-			hub.Lock()
 			delete(hub.clients, client)
-			hub.Unlock()
 		case msg := <-hub.broadcast:
-			hub.RLock()
 			for client := range hub.clients {
-				client.send <- msg
+				select {
+				case client.send <- msg:
+				default:
+					close(client.send)
+					delete(hub.clients, client)
+				}
 			}
-			hub.RUnlock()
 		}
 	}
 }
