@@ -2,12 +2,15 @@ package main
 
 import (
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
+	"github.com/1saswata/chess-broadcast-engine/internal/websocket"
 	"github.com/rabbitmq/amqp091-go"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -75,6 +78,18 @@ func main() {
 		slog.Error("Error registering consumer", "Error", err)
 		os.Exit(1)
 	}
+	hub := websocket.NewHub()
+	go hub.Run()
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /ws",
+		func(w http.ResponseWriter, r *http.Request) { websocket.ServeWs(hub, w, r) })
+	newServer := http.Server{Addr: ":8081", Handler: mux}
+	go func() {
+		if err := newServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("HTTP Server error:", "Error", err)
+			os.Exit(1)
+		}
+	}()
 	go func() {
 		for d := range msgs {
 			var move pb.Move
@@ -84,6 +99,12 @@ func main() {
 			}
 			slog.Info("Move", "Staring square", move.StartingSquare,
 				"Destination square", move.DestinationSquare)
+			jsonByte, err := protojson.Marshal(&move)
+			if err != nil {
+				slog.Error("Error converting to json bytes ", "Error", err)
+			} else {
+				hub.Broadcast(jsonByte)
+			}
 		}
 	}()
 	wait := make(chan os.Signal, 1)

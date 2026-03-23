@@ -3,12 +3,13 @@ module github.com/1saswata/chess-broadcast-engine
 go 1.25.8
 
 require (
+	github.com/gorilla/websocket v1.5.3
+	github.com/rabbitmq/amqp091-go v1.10.0
 	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
 )
 
 require (
-	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
