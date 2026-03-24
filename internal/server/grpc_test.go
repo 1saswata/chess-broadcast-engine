@@ -22,10 +22,17 @@ func (m MockPublisher) PublishMove(ctx context.Context, move []byte) error {
 	return nil
 }
 
+type MockCache struct {
+}
+
+func (m MockCache) SetLatestMove(ctx context.Context, matchID int32, move []byte) error {
+	return nil
+}
+
 func TestMove(t *testing.T) {
 	var lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterChessIngestServiceServer(s, NewIngestServer(MockPublisher{}))
+	pb.RegisterChessIngestServiceServer(s, NewIngestServer(MockPublisher{}, MockCache{}))
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			log.Fatal(err)
