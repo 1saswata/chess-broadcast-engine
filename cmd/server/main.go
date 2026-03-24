@@ -47,7 +47,7 @@ func main() {
 	defer cancel()
 	done := make(chan int, 1)
 	go func() {
-		err = mc.Close()
+		err := mc.Close()
 		if err != nil {
 			slog.Error("Error closing redis connection", "Error", err)
 		}
