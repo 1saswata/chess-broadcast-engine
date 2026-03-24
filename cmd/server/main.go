@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/1saswata/chess-broadcast-engine/internal/broker"
+	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"github.com/1saswata/chess-broadcast-engine/internal/server"
 	"google.golang.org/grpc"
@@ -23,7 +24,8 @@ func main() {
 		slog.Error("Error creating RabbitMQPublisher", "Error", err)
 		os.Exit(1)
 	}
-	ingestServer := server.NewIngestServer(rp)
+	mc, err := cache.NewRedisCache("localhost:6379")
+	ingestServer := server.NewIngestServer(rp, mc)
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		slog.Error("Error creating Listener", "Error", err)
@@ -45,6 +47,10 @@ func main() {
 	defer cancel()
 	done := make(chan int, 1)
 	go func() {
+		err := mc.Close()
+		if err != nil {
+			slog.Error("Error closing redis connection", "Error", err)
+		}
 		err = rp.Close()
 		if err != nil {
 			slog.Error("Error closing rabbitMQ connection", "Error", err)
