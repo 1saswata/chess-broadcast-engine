@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 4
-* **Current Task:** The Redis Cache Layer - Spin up a local Redis instance using Docker Compose. Create a strict Cache interface in Ingest Node, and implement a Redis client that updates the latest move in memory every time a move is recorded.
+* **Current Task:** The "Catch-Up" Protocol - When Spectator #10,001 connects to the WebSocket Hub, they shouldn't stare at an empty board waiting for the next move. The system must intercept their connection, instantly fetch the latest state from Redis, translate it to JSON, and push it exclusively to them.
