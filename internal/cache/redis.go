@@ -30,6 +30,15 @@ func (rc *RedisCache) SetLatestMove(ctx context.Context, matchID int32, move []b
 	return rc.client.Set(ctx, key, move, 24*time.Hour).Err()
 }
 
+func (rc *RedisCache) GetLatestMove(ctx context.Context, matchID int32) ([]byte, error) {
+	key := fmt.Sprintf("match:%d:latest", matchID)
+	b, err := rc.client.Get(ctx, key).Bytes()
+	if err == redis.Nil {
+		return nil, redis.Nil
+	}
+	return b, err
+}
+
 func (rc *RedisCache) Close() error {
 	return rc.client.Close()
 }

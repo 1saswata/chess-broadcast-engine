@@ -4,4 +4,5 @@ import "context"
 
 type MatchStateCache interface {
 	SetLatestMove(ctx context.Context, matchID int32, move []byte) error
+	GetLatestMove(ctx context.Context, matchID int32) ([]byte, error)
 }
