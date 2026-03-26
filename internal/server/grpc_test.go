@@ -29,6 +29,10 @@ func (m MockCache) SetLatestMove(ctx context.Context, matchID int32, move []byte
 	return nil
 }
 
+func (m MockCache) GetLatestMove(ctx context.Context, matchID int32) ([]byte, error) {
+	return nil, nil
+}
+
 func TestMove(t *testing.T) {
 	var lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
