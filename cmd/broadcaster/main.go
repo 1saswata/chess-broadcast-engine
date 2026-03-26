@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"github.com/1saswata/chess-broadcast-engine/internal/websocket"
 	"github.com/rabbitmq/amqp091-go"
@@ -80,9 +81,14 @@ func main() {
 	}
 	hub := websocket.NewHub()
 	go hub.Run()
+	rc, err := cache.NewRedisCache("localhost:6379")
+	if err != nil {
+		slog.Error("Error connecting to cache", "Error", err)
+		os.Exit(1)
+	}
+	wsHandler := websocket.NewWsHandler(hub, rc)
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /ws",
-		func(w http.ResponseWriter, r *http.Request) { websocket.ServeWs(hub, w, r) })
+	mux.HandleFunc("GET /ws", wsHandler.ServeHttp)
 	newServer := http.Server{Addr: ":8081", Handler: mux}
 	go func() {
 		if err := newServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {

@@ -24,8 +24,12 @@ func main() {
 		slog.Error("Error creating RabbitMQPublisher", "Error", err)
 		os.Exit(1)
 	}
-	mc, err := cache.NewRedisCache("localhost:6379")
-	ingestServer := server.NewIngestServer(rp, mc)
+	rc, err := cache.NewRedisCache("localhost:6379")
+	if err != nil {
+		slog.Error("Error connecting to cache", "Error", err)
+		os.Exit(1)
+	}
+	ingestServer := server.NewIngestServer(rp, rc)
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		slog.Error("Error creating Listener", "Error", err)
@@ -47,7 +51,7 @@ func main() {
 	defer cancel()
 	done := make(chan int, 1)
 	go func() {
-		err := mc.Close()
+		err := rc.Close()
 		if err != nil {
 			slog.Error("Error closing redis connection", "Error", err)
 		}
