@@ -14,9 +14,10 @@ var upgrader = ws.Upgrader{
 }
 
 type Client struct {
-	hub  *Hub
-	conn *ws.Conn
-	send chan []byte
+	hub     *Hub
+	conn    *ws.Conn
+	matchID int32
+	send    chan []byte
 }
 
 func (c *Client) readPump() {

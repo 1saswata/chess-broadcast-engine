@@ -109,7 +109,10 @@ func main() {
 			if err != nil {
 				slog.Error("Error converting to json bytes ", "Error", err)
 			} else {
-				hub.Broadcast(jsonByte)
+				hub.Broadcast(&websocket.BroadcastMessage{
+					MatchID: move.MatchId,
+					Payload: jsonByte,
+				})
 			}
 		}
 	}()

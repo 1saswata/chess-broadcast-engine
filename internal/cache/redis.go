@@ -34,7 +34,7 @@ func (rc *RedisCache) GetLatestMove(ctx context.Context, matchID int32) ([]byte,
 	key := fmt.Sprintf("match:%d:latest", matchID)
 	b, err := rc.client.Get(ctx, key).Bytes()
 	if err == redis.Nil {
-		return nil, redis.Nil
+		return nil, nil
 	}
 	return b, err
 }
