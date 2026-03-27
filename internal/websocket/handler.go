@@ -44,6 +44,9 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 		conn:    conn,
 		send:    make(chan []byte, 256),
 	}
+	client.hub.register <- &client
+	go client.writePump()
+	go client.readPump()
 	if len(moveHistory) != 0 {
 		//better error handling here? should we close the connection if one of the move is corrupted?
 		for _, rawMove := range moveHistory {
@@ -61,7 +64,4 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	client.hub.register <- &client
-	go client.writePump()
-	go client.readPump()
 }

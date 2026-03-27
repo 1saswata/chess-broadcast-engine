@@ -27,11 +27,10 @@ func NewRedisCache(addr string) (*RedisCache, error) {
 
 func (rc *RedisCache) AppendMove(ctx context.Context, matchID int32, move []byte) error {
 	key := fmt.Sprintf("match:%d:latest", matchID)
-	err := rc.client.RPush(ctx, key, move).Err()
-	if err != nil {
-		return err
-	}
-	err = rc.client.Expire(ctx, key, 24*time.Hour).Err()
+	pipe := rc.client.Pipeline()
+	pipe.RPush(ctx, key, move)
+	pipe.Expire(ctx, key, 24*time.Hour)
+	_, err := pipe.Exec(ctx)
 	return err
 }
 
@@ -39,9 +38,7 @@ func (rc *RedisCache) GetMoveHistory(ctx context.Context, matchID int32) ([][]by
 	key := fmt.Sprintf("match:%d:latest", matchID)
 	s, err := rc.client.LRange(ctx, key, 0, -1).Result()
 	b := make([][]byte, len(s))
-	if err == redis.Nil {
-		return b, nil
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	for i, msg := range s {
