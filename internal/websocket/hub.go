@@ -1,18 +1,23 @@
 package websocket
 
 type Hub struct {
-	broadcast  chan []byte
+	broadcast  chan *BroadcastMessage
 	register   chan *Client
 	unregister chan *Client
-	clients    map[*Client]bool
+	rooms      map[int32]map[*Client]bool
+}
+
+type BroadcastMessage struct {
+	MatchID int32
+	Payload []byte
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan *BroadcastMessage),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		rooms:      make(map[int32]map[*Client]bool),
 	}
 }
 
@@ -20,22 +25,32 @@ func (hub *Hub) Run() {
 	for {
 		select {
 		case client := <-hub.register:
-			hub.clients[client] = true
+			_, ok := hub.rooms[client.matchID]
+			if !ok {
+				hub.rooms[client.matchID] = make(map[*Client]bool)
+			}
+			hub.rooms[client.matchID][client] = true
 		case client := <-hub.unregister:
-			delete(hub.clients, client)
+			delete(hub.rooms[client.matchID], client)
+			if len(hub.rooms[client.matchID]) == 0 {
+				delete(hub.rooms, client.matchID)
+			}
 		case msg := <-hub.broadcast:
-			for client := range hub.clients {
+			for client := range hub.rooms[msg.MatchID] {
 				select {
-				case client.send <- msg:
+				case client.send <- msg.Payload:
 				default:
 					close(client.send)
-					delete(hub.clients, client)
+					delete(hub.rooms[client.matchID], client)
+					if len(hub.rooms[client.matchID]) == 0 {
+						delete(hub.rooms, client.matchID)
+					}
 				}
 			}
 		}
 	}
 }
 
-func (hub *Hub) Broadcast(m []byte) {
+func (hub *Hub) Broadcast(m *BroadcastMessage) {
 	hub.broadcast <- m
 }

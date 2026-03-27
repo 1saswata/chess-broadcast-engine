@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 4
-* **Current Task:** The "Catch-Up" Protocol - When Spectator #10,001 connects to the WebSocket Hub, they shouldn't stare at an empty board waiting for the next move. The system must intercept their connection, instantly fetch the latest state from Redis, translate it to JSON, and push it exclusively to them.
+* **Current Task:** The Hydrated Switchboard - Transform the Broadcaster node from a blind megaphone into a match-specific Pub/Sub router. Refactor the Hub to manage isolated rooms, inject a Redis cache into the HTTP handling layer using the Handler Struct pattern, and ensure every connecting spectator is instantly hydrated with the exact, current state of their specific match.

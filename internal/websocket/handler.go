@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -22,35 +23,40 @@ func NewWsHandler(h *Hub, rc cache.MatchStateCache) *WsHandler {
 
 func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 	i := r.URL.Query().Get("match_id")
+	matchID, err := strconv.Atoi(i)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	res, err := wh.rc.GetLatestMove(context.Background(), int32(matchID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	matchID, err := strconv.Atoi(i)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	res, err := wh.rc.GetLatestMove(context.Background(), int32(matchID))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
 	client := Client{
-		hub:  wh.hub,
-		conn: conn,
-		send: make(chan []byte, 256),
+		matchID: int32(matchID),
+		hub:     wh.hub,
+		conn:    conn,
+		send:    make(chan []byte, 256),
 	}
 	if res != nil {
 		var m pb.Move
 		err := proto.Unmarshal(res, &m)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			slog.Error("Error in cache move unmarshal", "Error", err.Error())
+		} else {
+			res, err := protojson.Marshal(&m)
+			if err != nil {
+				slog.Error("Error in cache json marshal", "Error", err.Error())
+			} else {
+				client.send <- res
+			}
 		}
-		res, err := protojson.Marshal(&m)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		client.send <- res
 	}
 	client.hub.register <- &client
 	go client.writePump()

@@ -86,6 +86,7 @@ func main() {
 		slog.Error("Error connecting to cache", "Error", err)
 		os.Exit(1)
 	}
+	defer rc.Close()
 	wsHandler := websocket.NewWsHandler(hub, rc)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /ws", wsHandler.ServeHttp)
@@ -109,7 +110,10 @@ func main() {
 			if err != nil {
 				slog.Error("Error converting to json bytes ", "Error", err)
 			} else {
-				hub.Broadcast(jsonByte)
+				hub.Broadcast(&websocket.BroadcastMessage{
+					MatchID: move.MatchId,
+					Payload: jsonByte,
+				})
 			}
 		}
 	}()
