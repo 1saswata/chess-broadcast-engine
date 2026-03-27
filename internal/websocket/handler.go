@@ -26,10 +26,12 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 	matchID, err := strconv.Atoi(i)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	res, err := wh.rc.GetLatestMove(context.Background(), int32(matchID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

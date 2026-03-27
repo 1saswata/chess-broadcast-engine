@@ -86,6 +86,7 @@ func main() {
 		slog.Error("Error connecting to cache", "Error", err)
 		os.Exit(1)
 	}
+	defer rc.Close()
 	wsHandler := websocket.NewWsHandler(hub, rc)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /ws", wsHandler.ServeHttp)
