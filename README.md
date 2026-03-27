@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 4
-* **Current Task:** The Hydrated Switchboard - Transform the Broadcaster node from a blind megaphone into a match-specific Pub/Sub router. Refactor the Hub to manage isolated rooms, inject a Redis cache into the HTTP handling layer using the Handler Struct pattern, and ensure every connecting spectator is instantly hydrated with the exact, current state of their specific match.
+* **Current Task:** Event Sourcing & The Replay Buffer - Transition the caching layer from a simple "latest state" Key-Value store to an append-only Event Log using Redis Lists. Update the WebSocket Hub to blast the entire historical array of moves to any newly connected client so their browser can replay the match to the current state.

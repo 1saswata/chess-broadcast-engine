@@ -25,11 +25,11 @@ func (m MockPublisher) PublishMove(ctx context.Context, move []byte) error {
 type MockCache struct {
 }
 
-func (m MockCache) SetLatestMove(ctx context.Context, matchID int32, move []byte) error {
+func (m MockCache) AppendMove(ctx context.Context, matchID int32, move []byte) error {
 	return nil
 }
 
-func (m MockCache) GetLatestMove(ctx context.Context, matchID int32) ([]byte, error) {
+func (m MockCache) GetMoveHistory(ctx context.Context, matchID int32) ([][]byte, error) {
 	return nil, nil
 }
 

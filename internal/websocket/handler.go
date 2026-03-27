@@ -28,7 +28,7 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	res, err := wh.rc.GetLatestMove(context.Background(), int32(matchID))
+	moveHistory, err := wh.rc.GetMoveHistory(context.Background(), int32(matchID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -44,17 +44,20 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 		conn:    conn,
 		send:    make(chan []byte, 256),
 	}
-	if res != nil {
-		var m pb.Move
-		err := proto.Unmarshal(res, &m)
-		if err != nil {
-			slog.Error("Error in cache move unmarshal", "Error", err.Error())
-		} else {
-			res, err := protojson.Marshal(&m)
+	if len(moveHistory) != 0 {
+		//better error handling here? should we close the connection if one of the move is corrupted?
+		for _, rawMove := range moveHistory {
+			var m pb.Move
+			err := proto.Unmarshal(rawMove, &m)
 			if err != nil {
-				slog.Error("Error in cache json marshal", "Error", err.Error())
+				slog.Error("Error in cache move unmarshal", "Error", err.Error())
 			} else {
-				client.send <- res
+				res, err := protojson.Marshal(&m)
+				if err != nil {
+					slog.Error("Error in cache json marshal", "Error", err.Error())
+				} else {
+					client.send <- res
+				}
 			}
 		}
 	}
