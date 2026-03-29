@@ -25,7 +25,7 @@ func (is *IngestServer) RecordMove(ctx context.Context, m *pb.Move) (*pb.MoveRes
 		return &pb.MoveResponse{Success: false, Msg: "Internal Server Error"},
 			status.Errorf(codes.Internal, "failed to serialize: %v", err)
 	}
-	if err = is.mCache.SetLatestMove(ctx, m.GetMatchId(), b); err != nil {
+	if err = is.mCache.AppendMove(ctx, m.GetMatchId(), b); err != nil {
 		slog.Error("Unable to cache", "Error", err)
 		return &pb.MoveResponse{Success: false, Msg: "Internal Server Error"},
 			status.Errorf(codes.Internal, "failed to cache: %v", err)
