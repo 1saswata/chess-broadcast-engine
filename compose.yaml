@@ -11,3 +11,9 @@ services:
     image: redis:8.6-alpine
     ports:
       - "6379:6379"
+
+  Jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4318:4318"

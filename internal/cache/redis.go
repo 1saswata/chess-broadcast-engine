@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
 )
 
 type RedisCache struct {
@@ -26,6 +27,8 @@ func NewRedisCache(addr string) (*RedisCache, error) {
 }
 
 func (rc *RedisCache) AppendMove(ctx context.Context, matchID int32, move []byte) error {
+	ctx, span := otel.Tracer("redis-cache").Start(ctx, "AppendMove")
+	defer span.End()
 	key := fmt.Sprintf("match:%d:latest", matchID)
 	pipe := rc.client.Pipeline()
 	pipe.RPush(ctx, key, move)
