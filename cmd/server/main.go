@@ -13,12 +13,14 @@ import (
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"github.com/1saswata/chess-broadcast-engine/internal/server"
+	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
 	"google.golang.org/grpc"
 )
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
+	tp, err := telemetry.InitTracer("chess-ingest-server")
 	rp, err := broker.NewRabbitMQPublisher("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		slog.Error("Error creating RabbitMQPublisher", "Error", err)
@@ -60,6 +62,10 @@ func main() {
 			slog.Error("Error closing rabbitMQ connection", "Error", err)
 		}
 		s.GracefulStop()
+		err = tp.Shutdown(ctx)
+		if err != nil {
+			slog.Error("Error closing tracer", "Error", err)
+		}
 		close(done)
 	}()
 	select {

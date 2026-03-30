@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 )
 
 type RabbitMQPublisher struct {
@@ -12,6 +13,8 @@ type RabbitMQPublisher struct {
 }
 
 func (rp *RabbitMQPublisher) PublishMove(ctx context.Context, move []byte) error {
+	ctx, span := otel.Tracer("rabbitmq-broker").Start(ctx, "PublishMove")
+	defer span.End()
 	err := rp.ch.PublishWithContext(ctx,
 		"chess_broadcast",
 		"",

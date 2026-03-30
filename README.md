@@ -20,5 +20,5 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 
 ## Current Status
 
-* **Current Week:** 4
-* **Current Task:** Event Sourcing & The Replay Buffer - Transition the caching layer from a simple "latest state" Key-Value store to an append-only Event Log using Redis Lists. Update the WebSocket Hub to blast the entire historical array of moves to any newly connected client so their browser can replay the match to the current state.
+* **Current Week:** 5
+* **Current Task:** Instrumenting the Ingest Node - Deploy Jaeger to your Docker Compose stack. Instrument the gRPC Ingest Server using OpenTelemetry (OTel) to generate distributed traces. You will trace the execution time of both the Redis cache write and the RabbitMQ publish event inside a single request span.
