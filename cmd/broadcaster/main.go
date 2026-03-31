@@ -108,26 +108,29 @@ func main() {
 	}()
 	go func() {
 		for d := range msgs {
-			carrier := telemetry.AMQPCarrier{Table: d.Headers}
-			ctx := otel.GetTextMapPropagator().Extract(context.Background(), carrier)
-			ctx, span := otel.Tracer("broadcaster-node").Start(ctx, "BroadcastMove")
-			var move pb.Move
-			err = proto.Unmarshal(d.Body, &move)
-			if err != nil {
-				slog.Error("Error serializing move", "Error", err)
-			}
-			slog.Info("Move", "Staring square", move.StartingSquare,
-				"Destination square", move.DestinationSquare)
-			jsonByte, err := protojson.Marshal(&move)
-			if err != nil {
-				slog.Error("Error converting to json bytes ", "Error", err)
-			} else {
-				hub.Broadcast(&websocket.BroadcastMessage{
-					MatchID: move.MatchId,
-					Payload: jsonByte,
-				})
-			}
-			span.End()
+			func() {
+				carrier := telemetry.AMQPCarrier{Table: d.Headers}
+				ctx := otel.GetTextMapPropagator().Extract(context.Background(), carrier)
+				ctx, span := otel.Tracer("broadcaster-node").Start(ctx, "BroadcastMove")
+				defer span.End()
+				var move pb.Move
+				err = proto.Unmarshal(d.Body, &move)
+				if err != nil {
+					slog.Error("Error serializing move", "Error", err)
+					return
+				}
+				slog.Info("Move", "Staring square", move.StartingSquare,
+					"Destination square", move.DestinationSquare)
+				jsonByte, err := protojson.Marshal(&move)
+				if err != nil {
+					slog.Error("Error converting to json bytes ", "Error", err)
+				} else {
+					hub.Broadcast(&websocket.BroadcastMessage{
+						MatchID: move.MatchId,
+						Payload: jsonByte,
+					})
+				}
+			}()
 		}
 	}()
 	wait := make(chan os.Signal, 1)
