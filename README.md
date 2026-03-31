@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 5
-* **Current Task:** Instrumenting the Ingest Node - Deploy Jaeger to your Docker Compose stack. Instrument the gRPC Ingest Server using OpenTelemetry (OTel) to generate distributed traces. You will trace the execution time of both the Redis cache write and the RabbitMQ publish event inside a single request span.
+* **Current Task:** Crossing the AMQP Boundary - Instrument the Broadcaster node with OpenTelemetry. Implement W3C context propagation so that a single trace starts at the gRPC Ingest node, crosses the RabbitMQ boundary, and finishes in the Broadcaster's WebSocket hydration loop.

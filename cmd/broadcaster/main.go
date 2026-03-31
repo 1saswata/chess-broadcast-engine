@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -9,8 +10,10 @@ import (
 
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
+	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
 	"github.com/1saswata/chess-broadcast-engine/internal/websocket"
 	"github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -18,6 +21,12 @@ import (
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
+	tp, err := telemetry.InitTracer("chess-broadcast-server")
+	defer tp.Shutdown(context.Background())
+	if err != nil {
+		slog.Error("Error creating tracer", "Error", err)
+		os.Exit(1)
+	}
 	conn, err := amqp091.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		slog.Error("Error connecting to rabbitmq", "Error", err)
@@ -99,22 +108,29 @@ func main() {
 	}()
 	go func() {
 		for d := range msgs {
-			var move pb.Move
-			err = proto.Unmarshal(d.Body, &move)
-			if err != nil {
-				slog.Error("Error serializing move", "Error", err)
-			}
-			slog.Info("Move", "Staring square", move.StartingSquare,
-				"Destination square", move.DestinationSquare)
-			jsonByte, err := protojson.Marshal(&move)
-			if err != nil {
-				slog.Error("Error converting to json bytes ", "Error", err)
-			} else {
-				hub.Broadcast(&websocket.BroadcastMessage{
-					MatchID: move.MatchId,
-					Payload: jsonByte,
-				})
-			}
+			func() {
+				carrier := telemetry.AMQPCarrier{Table: d.Headers}
+				ctx := otel.GetTextMapPropagator().Extract(context.Background(), carrier)
+				ctx, span := otel.Tracer("broadcaster-node").Start(ctx, "BroadcastMove")
+				defer span.End()
+				var move pb.Move
+				err = proto.Unmarshal(d.Body, &move)
+				if err != nil {
+					slog.Error("Error serializing move", "Error", err)
+					return
+				}
+				slog.Info("Move", "Staring square", move.StartingSquare,
+					"Destination square", move.DestinationSquare)
+				jsonByte, err := protojson.Marshal(&move)
+				if err != nil {
+					slog.Error("Error converting to json bytes ", "Error", err)
+				} else {
+					hub.Broadcast(&websocket.BroadcastMessage{
+						MatchID: move.MatchId,
+						Payload: jsonByte,
+					})
+				}
+			}()
 		}
 	}()
 	wait := make(chan os.Signal, 1)

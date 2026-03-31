@@ -3,6 +3,7 @@ package broker
 import (
 	"context"
 
+	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
 	"github.com/rabbitmq/amqp091-go"
 	"go.opentelemetry.io/otel"
 )
@@ -15,12 +16,16 @@ type RabbitMQPublisher struct {
 func (rp *RabbitMQPublisher) PublishMove(ctx context.Context, move []byte) error {
 	ctx, span := otel.Tracer("rabbitmq-broker").Start(ctx, "PublishMove")
 	defer span.End()
+	t := make(amqp091.Table)
+	carrier := telemetry.AMQPCarrier{Table: t}
+	otel.GetTextMapPropagator().Inject(ctx, carrier)
 	err := rp.ch.PublishWithContext(ctx,
 		"chess_broadcast",
 		"",
 		false,
 		false,
-		amqp091.Publishing{ContentType: "application/x-protobuf", Body: move},
+		amqp091.Publishing{ContentType: "application/x-protobuf", Body: move,
+			Headers: carrier.Table},
 	)
 	return err
 }
