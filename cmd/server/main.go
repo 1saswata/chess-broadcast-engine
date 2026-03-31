@@ -21,6 +21,10 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 	tp, err := telemetry.InitTracer("chess-ingest-server")
+	if err != nil {
+		slog.Error("Error creating tracer", "Error", err)
+		os.Exit(1)
+	}
 	rp, err := broker.NewRabbitMQPublisher("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		slog.Error("Error creating RabbitMQPublisher", "Error", err)

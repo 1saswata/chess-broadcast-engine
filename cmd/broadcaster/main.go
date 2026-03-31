@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -9,8 +10,10 @@ import (
 
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
+	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
 	"github.com/1saswata/chess-broadcast-engine/internal/websocket"
 	"github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -18,6 +21,12 @@ import (
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
+	tp, err := telemetry.InitTracer("chess-broadcast-server")
+	defer tp.Shutdown(context.Background())
+	if err != nil {
+		slog.Error("Error creating tracer", "Error", err)
+		os.Exit(1)
+	}
 	conn, err := amqp091.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		slog.Error("Error connecting to rabbitmq", "Error", err)
@@ -99,6 +108,9 @@ func main() {
 	}()
 	go func() {
 		for d := range msgs {
+			carrier := telemetry.AMQPCarrier{Table: d.Headers}
+			ctx := otel.GetTextMapPropagator().Extract(context.Background(), carrier)
+			ctx, span := otel.Tracer("broadcaster-node").Start(ctx, "BroadcastMove")
 			var move pb.Move
 			err = proto.Unmarshal(d.Body, &move)
 			if err != nil {
@@ -115,6 +127,7 @@ func main() {
 					Payload: jsonByte,
 				})
 			}
+			span.End()
 		}
 	}()
 	wait := make(chan os.Signal, 1)
