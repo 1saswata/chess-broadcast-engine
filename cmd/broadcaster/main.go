@@ -27,7 +27,11 @@ func main() {
 		slog.Error("Error creating tracer", "Error", err)
 		os.Exit(1)
 	}
-	conn, err := amqp091.Dial("amqp://guest:guest@localhost:5672/")
+	amqpURL := os.Getenv("AMQP_SERVER_URL")
+	if amqpURL == "" {
+		amqpURL = "amqp://guest:guest@localhost:5672/"
+	}
+	conn, err := amqp091.Dial(amqpURL)
 	if err != nil {
 		slog.Error("Error connecting to rabbitmq", "Error", err)
 		os.Exit(1)
@@ -90,7 +94,11 @@ func main() {
 	}
 	hub := websocket.NewHub()
 	go hub.Run()
-	rc, err := cache.NewRedisCache("localhost:6379")
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "localhost:6379"
+	}
+	rc, err := cache.NewRedisCache(redisURL)
 	if err != nil {
 		slog.Error("Error connecting to cache", "Error", err)
 		os.Exit(1)

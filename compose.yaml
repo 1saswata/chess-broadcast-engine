@@ -1,19 +1,65 @@
 services:
   RabbitMQ:
     image: rabbitmq:4.2-management-alpine
-    hostname: rabbitmq
+    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
       - ./rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
   Redis:
     image: redis:8.6-alpine
+    container_name: redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   Jaeger:
     image: jaegertracing/all-in-one:latest
+    container_name: jaeger 
     ports:
       - "16686:16686"
       - "4318:4318"
+
+  ingest-node:
+    build: 
+      dockerfile: Dockerfile.server
+    container_name: ingest
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
+      REDIS_URL: redis:6379
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    ports:
+      - "50051:50051"
+    depends_on:
+      RabbitMQ:
+        condition: service_healthy
+      Redis:
+        condition: service_healthy
+
+  broadcast-node:
+    build: 
+      dockerfile: Dockerfile.broadcaster
+    container_name: broadcaster
+    environment: 
+      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
+      REDIS_URL: redis:6379
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    ports:
+      - "8081:8081"
+    depends_on:
+      RabbitMQ:
+        condition: service_healthy
+      Redis:
+        condition: service_healthy
