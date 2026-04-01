@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.26-alpine AS build
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o broadcaster cmd/broadcaster/main.go
+
+FROM alpine:latest AS runner
+WORKDIR /app
+COPY --from=build /app/broadcaster /app/broadcaster
+RUN chmod +x /app/broadcaster
+EXPOSE 8081
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+ENTRYPOINT [ "/app/broadcaster" ]

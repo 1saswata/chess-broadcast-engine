@@ -20,5 +20,5 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 
 ## Current Status
 
-* **Current Week:** 5
-* **Current Task:** Crossing the AMQP Boundary - Instrument the Broadcaster node with OpenTelemetry. Implement W3C context propagation so that a single trace starts at the gRPC Ingest node, crosses the RabbitMQ boundary, and finishes in the Broadcaster's WebSocket hydration loop.
+* **Current Week:** 6
+* **Current Task:** Multi-Stage Docker Builds & Networking - Write Dockerfiles for both the server and broadcaster binaries using multi-stage builds to keep the final images tiny. Then, integrate them into compose.yaml so the entire infrastructure network boots up together.
