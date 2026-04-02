@@ -23,6 +23,13 @@ type IngestServer struct {
 func (is *IngestServer) RecordMove(ctx context.Context, m *pb.Move) (*pb.MoveResponse, error) {
 	ctx, span := otel.Tracer("ingest-node").Start(ctx, "RecordMove")
 	defer span.End()
+	seq, err := is.mCache.IncrementSequence(ctx, m.GetMatchId())
+	if err != nil {
+		slog.Error("Unable to get sequence", "Error", err)
+		return &pb.MoveResponse{Success: false, Msg: "Internal Server Error"},
+			status.Errorf(codes.Internal, "failed to get sequence: %v", err)
+	}
+	m.SequenceNumber = seq
 	b, err := proto.Marshal(m)
 	if err != nil {
 		slog.Error("Unable to serialize", "Error", err)

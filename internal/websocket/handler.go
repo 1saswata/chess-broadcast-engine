@@ -28,11 +28,6 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	moveHistory, err := wh.rc.GetMoveHistory(context.Background(), int32(matchID))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,8 +42,11 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 	client.hub.register <- &client
 	go client.writePump()
 	go client.readPump()
+	moveHistory, err := wh.rc.GetMoveHistory(context.Background(), int32(matchID))
+	if err != nil {
+		slog.Error("Error getting move history", "Error", err)
+	}
 	if len(moveHistory) != 0 {
-		//better error handling here? should we close the connection if one of the move is corrupted?
 		for _, rawMove := range moveHistory {
 			var m pb.Move
 			err := proto.Unmarshal(rawMove, &m)

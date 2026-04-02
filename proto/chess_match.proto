@@ -10,6 +10,7 @@ message Move {
     string starting_square = 3;
     string destination_square = 4;
     google.protobuf.Timestamp timestamp = 5;
+    int32 sequence_number = 6;
 }
 
 enum Player {
