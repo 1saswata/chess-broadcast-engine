@@ -21,4 +21,4 @@ A distributed backend for broadcasting live chess matches to thousands of simult
 ## Current Status
 
 * **Current Week:** 6
-* **Current Task:** Multi-Stage Docker Builds & Networking - Write Dockerfiles for both the server and broadcaster binaries using multi-stage builds to keep the final images tiny. Then, integrate them into compose.yaml so the entire infrastructure network boots up together.
+* **Current Task:** The Consistency Patch (Atomic Ordering & The Interleave) - Eliminate the WebSocket hydration race condition ("The Gap") by introducing an absolute, atomic sequence number for every chess move using Redis. Reorder the Broadcaster's HTTP handler to embrace "The Interleave," subscribing the user to the live stream before fetching the historical cache, guaranteeing zero dropped messages.

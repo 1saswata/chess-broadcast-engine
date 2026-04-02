@@ -50,6 +50,12 @@ func (rc *RedisCache) GetMoveHistory(ctx context.Context, matchID int32) ([][]by
 	return b, nil
 }
 
+func (rc *RedisCache) IncrementSequence(ctx context.Context, matchID int32) (int32, error) {
+	key := fmt.Sprintf("match:%d:sequence", matchID)
+	seq, err := rc.client.Incr(ctx, key).Result()
+	return int32(seq), err
+}
+
 func (rc *RedisCache) Close() error {
 	return rc.client.Close()
 }

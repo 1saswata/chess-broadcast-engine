@@ -78,6 +78,7 @@ type Move struct {
 	StartingSquare    string                 `protobuf:"bytes,3,opt,name=starting_square,json=startingSquare,proto3" json:"starting_square,omitempty"`
 	DestinationSquare string                 `protobuf:"bytes,4,opt,name=destination_square,json=destinationSquare,proto3" json:"destination_square,omitempty"`
 	Timestamp         *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	SequenceNumber    int32                  `protobuf:"varint,6,opt,name=sequence_number,json=sequenceNumber,proto3" json:"sequence_number,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -147,6 +148,13 @@ func (x *Move) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Move) GetSequenceNumber() int32 {
+	if x != nil {
+		return x.SequenceNumber
+	}
+	return 0
+}
+
 type MoveResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -203,14 +211,15 @@ var File_proto_chess_match_proto protoreflect.FileDescriptor
 
 const file_proto_chess_match_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/chess_match.proto\x12\x02pb\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe6\x01\n" +
+	"\x17proto/chess_match.proto\x12\x02pb\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8f\x02\n" +
 	"\x04Move\x12\x19\n" +
 	"\bmatch_id\x18\x01 \x01(\x05R\amatchId\x121\n" +
 	"\x0ecurrent_player\x18\x02 \x01(\x0e2\n" +
 	".pb.PlayerR\rcurrentPlayer\x12'\n" +
 	"\x0fstarting_square\x18\x03 \x01(\tR\x0estartingSquare\x12-\n" +
 	"\x12destination_square\x18\x04 \x01(\tR\x11destinationSquare\x128\n" +
-	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\":\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12'\n" +
+	"\x0fsequence_number\x18\x06 \x01(\x05R\x0esequenceNumber\":\n" +
 	"\fMoveResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x10\n" +
 	"\x03msg\x18\x02 \x01(\tR\x03msg*D\n" +

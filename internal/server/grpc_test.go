@@ -33,6 +33,10 @@ func (m MockCache) GetMoveHistory(ctx context.Context, matchID int32) ([][]byte,
 	return nil, nil
 }
 
+func (m MockCache) IncrementSequence(ctx context.Context, matchID int32) (int32, error) {
+	return 0, nil
+}
+
 func TestMove(t *testing.T) {
 	var lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
