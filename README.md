@@ -39,7 +39,7 @@ Run the following command to spin up the entire distributed cluster (Ingest Node
 * **Jaeger UI:** http://localhost:16686
 
 ## Project Scope & Known Limitations
-* **Technical Debt & Scope Acknowledgment:** As a portfolio piece focusing strictly on backend distributed systems and real-time data streaming, this project explicitly bounds its scope. The following elements represent known limitations and areas for future expansion:
+**Technical Debt & Scope Acknowledgment:** As a portfolio piece focusing strictly on backend distributed systems and real-time data streaming, this project explicitly bounds its scope. The following elements represent known limitations and areas for future expansion:
 
 **No Visual Frontend Client:** Currently, the system hydrates state via raw JSON over WebSockets. A frontend UI (e.g., vanilla JS with an HTML5 canvas) is required to parse the JSON and visually render the chessboard.
 

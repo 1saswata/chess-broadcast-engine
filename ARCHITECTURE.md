@@ -1,5 +1,3 @@
-### 2. The ARCHITECTURE.md (Technical Design Document)
-
 # Technical Design Document: Chess Broadcast Engine
 
 ## 1. System Overview
