@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spectator</title>
     <script defer> 
-        ws = new WebSocket("ws://localhost:8081/ws?match_id=1");
+        const ws = new WebSocket("ws://localhost:8081/ws?match_id=1");
         ws.addEventListener('open', (event) => {
             console.log('Connected to server');
         });
