@@ -107,6 +107,7 @@ func main() {
 	wsHandler := websocket.NewWsHandler(hub, rc)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /ws", wsHandler.ServeHttp)
+	mux.Handle("/", http.FileServer(http.Dir("./web")))
 	newServer := http.Server{Addr: ":8081", Handler: mux}
 	go func() {
 		if err := newServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {

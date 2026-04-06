@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectator</title>
+    <script defer> 
+        const ws = new WebSocket("ws://localhost:8081/ws?match_id=1");
+        ws.addEventListener('open', (event) => {
+            console.log('Connected to server');
+        });
+        ws.addEventListener('message', (event) => {
+            console.log("Received Move:", JSON.parse(event.data));
+        });
+        ws.addEventListener('error', (error) => {
+            console.error('Websocket error: ', error);
+        });
+    </script>
+</head>
+<body>
+    
+</body>
+</html>

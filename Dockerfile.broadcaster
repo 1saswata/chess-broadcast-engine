@@ -10,6 +10,7 @@ RUN CGO_ENABLED=0 go build -o broadcaster cmd/broadcaster/main.go
 FROM alpine:latest AS runner
 WORKDIR /app
 COPY --from=build /app/broadcaster /app/broadcaster
+COPY web/ web/
 RUN chmod +x /app/broadcaster
 EXPOSE 8081
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
