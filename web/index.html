@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spectator</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script defer> 
         const ws = new WebSocket("ws://localhost:8081/ws?match_id=1");
         ws.addEventListener('open', (event) => {
@@ -15,9 +18,18 @@
         ws.addEventListener('error', (error) => {
             console.error('Websocket error: ', error);
         });
+        window.onload = (event) => {
+            var config = {
+                //draggable: true,
+                position: 'start',
+                // Point to the CDN-hosted image files
+                pieceTheme: '/img/chesspieces/{piece}.png'
+            };
+            const board = Chessboard('board', config);
+        }
     </script>
 </head>
 <body>
-    
+    <div id="board" style="width: 400px"></div>
 </body>
 </html>
