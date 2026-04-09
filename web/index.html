@@ -11,14 +11,14 @@
 <body>
     <div id="board" style="width: 400px"></div>
     <script> 
-        var config = {
+        const config = {
             //draggable: true,
             position: 'start',
             // Point to the CDN-hosted image files
             pieceTheme: '/img/chesspieces/{piece}.png'
         };
         const board = Chessboard('board', config);
-        var expectedSequence = 1;
+        let expectedSequence = 1;
         const pendingBuffer = new Map();
         const ws = new WebSocket("ws://localhost:8081/ws?match_id=1");
         ws.addEventListener('open', (event) => {
