@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/1saswata/chess-broadcast-engine/internal/auth"
 	"github.com/1saswata/chess-broadcast-engine/internal/broker"
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
@@ -16,6 +21,29 @@ import (
 	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
 	"google.golang.org/grpc"
 )
+
+func login() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
+		v := struct {
+			Role     string `json:"role"`
+			Match_id int32  `json:"match_id"`
+		}{}
+		err := json.NewDecoder(r.Body).Decode(&v)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		token, err := auth.GenerateToken(v.Match_id, v.Role)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		fmt.Fprintf(w, "%s", token)
+	})
+	newServer := http.Server{Addr: ":8080", Handler: mux}
+	log.Fatal(newServer.ListenAndServe())
+}
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -25,6 +53,7 @@ func main() {
 		slog.Error("Error creating tracer", "Error", err)
 		os.Exit(1)
 	}
+	go login()
 	amqpURL := os.Getenv("AMQP_SERVER_URL")
 	if amqpURL == "" {
 		amqpURL = "amqp://guest:guest@localhost:5672/"
