@@ -23,7 +23,7 @@ func AuthInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		return nil, status.Errorf(codes.Unauthenticated,
 			"authorization token is not provided")
 	}
-	token := strings.TrimPrefix(authHeader[0], "Bearer")
+	token := strings.TrimPrefix(authHeader[0], "Bearer ")
 	claims, err := auth.ValidateToken(token)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid token")

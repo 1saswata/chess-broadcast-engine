@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"net/http"
@@ -42,7 +41,7 @@ func login() {
 		fmt.Fprintf(w, "%s", token)
 	})
 	newServer := http.Server{Addr: ":8080", Handler: mux}
-	log.Fatal(newServer.ListenAndServe())
+	slog.Error("Error on login", "Error", newServer.ListenAndServe())
 }
 
 func main() {
