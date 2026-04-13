@@ -11,8 +11,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var a grpc.UnaryServerInterceptor
-
 func AuthInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp any, err error) {
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -30,7 +28,7 @@ func AuthInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 	}
-	if (*claims)["role"] != "grandmaster" {
+	if claims["role"] != "grandmaster" {
 		return nil, status.Errorf(codes.PermissionDenied, "unauthorized")
 	}
 	return handler(ctx, req)

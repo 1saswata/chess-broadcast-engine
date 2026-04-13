@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -21,7 +22,11 @@ func GenerateToken(matchID int32, role string) (string, error) {
 	return tokenString, err
 }
 
-func ValidateToken(tokenString string) (*jwt.MapClaims, error) {
+func ValidateToken(tokenString string) (jwt.MapClaims, error) {
+	tokenString = strings.TrimSpace(tokenString)
+	if tokenString == "" {
+		return nil, fmt.Errorf("token is empty")
+	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Not authorized")
@@ -32,7 +37,7 @@ func ValidateToken(tokenString string) (*jwt.MapClaims, error) {
 		return nil, err
 	}
 	if token.Valid {
-		return token.Claims.(*jwt.MapClaims), nil
+		return token.Claims.(jwt.MapClaims), nil
 	}
 	return nil, fmt.Errorf("Not authorized")
 }
