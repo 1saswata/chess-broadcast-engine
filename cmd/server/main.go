@@ -78,7 +78,7 @@ func main() {
 		slog.Error("Error creating Listener", "Error", err)
 		os.Exit(1)
 	}
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(server.AuthInterceptor))
 	pb.RegisterChessIngestServiceServer(s, ingestServer)
 	slog.Info("Starting the server...")
 	go func() {
