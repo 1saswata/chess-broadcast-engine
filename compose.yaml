@@ -42,6 +42,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     ports:
       - "50051:50051"
+      - "8080:8080"
     depends_on:
       RabbitMQ:
         condition: service_healthy
