@@ -28,6 +28,7 @@ func login() {
 			Role     string `json:"role"`
 			Match_id int32  `json:"match_id"`
 		}{}
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		err := json.NewDecoder(r.Body).Decode(&v)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
