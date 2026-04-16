@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/1saswata/chess-broadcast-engine/internal/auth"
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -26,6 +27,16 @@ func (wh *WsHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
 	matchID, err := strconv.Atoi(i)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	token := r.URL.Query().Get("token")
+	claims, err := auth.ValidateToken(token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	if claims["role"] != "grandmaster" && claims["role"] != "spectator" {
+		http.Error(w, "Not correct authorization", http.StatusUnauthorized)
 		return
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)

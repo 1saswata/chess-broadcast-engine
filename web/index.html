@@ -10,7 +10,7 @@
 </head>
 <body>
     <div id="board" style="width: 400px"></div>
-    <script> 
+    <script type="module">
         const config = {
             //draggable: true,
             position: 'start',
@@ -18,9 +18,17 @@
             pieceTheme: '/img/chesspieces/{piece}.png'
         };
         const board = Chessboard('board', config);
+        const response = await fetch("http://localhost:8080/login", {
+            method: "POST",
+            body: JSON.stringify({"role": "spectator", "match_id": 1}),
+        });
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+        const token = await response.text()
         let expectedSequence = 1;
         const pendingBuffer = new Map();
-        const ws = new WebSocket("ws://localhost:8081/ws?match_id=1");
+        const ws = new WebSocket("ws://localhost:8081/ws?match_id=1&token=" + token);
         ws.addEventListener('open', (event) => {
             console.log('Connected to server');
         });
