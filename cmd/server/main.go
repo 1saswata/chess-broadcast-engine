@@ -15,6 +15,7 @@ import (
 	"github.com/1saswata/chess-broadcast-engine/internal/auth"
 	"github.com/1saswata/chess-broadcast-engine/internal/broker"
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
+	"github.com/1saswata/chess-broadcast-engine/internal/db"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"github.com/1saswata/chess-broadcast-engine/internal/server"
 	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
@@ -51,6 +52,17 @@ func main() {
 	tp, err := telemetry.InitTracer("chess-ingest-server")
 	if err != nil {
 		slog.Error("Error creating tracer", "Error", err)
+		os.Exit(1)
+	}
+	d, err := db.InitDB("")
+	if err != nil {
+		slog.Error("Error in db connection", "Error", err)
+		os.Exit(1)
+	}
+	defer d.Close()
+	err = db.RunDBMigration("", "")
+	if err != nil {
+		slog.Error("Error in db migration", "Error", err)
 		os.Exit(1)
 	}
 	go login()
