@@ -54,13 +54,14 @@ func main() {
 		slog.Error("Error creating tracer", "Error", err)
 		os.Exit(1)
 	}
-	d, err := db.InitDB("")
+	dbURL := os.Getenv("DB_URL")
+	d, err := db.InitDB(dbURL)
 	if err != nil {
 		slog.Error("Error in db connection", "Error", err)
 		os.Exit(1)
 	}
 	defer d.Close()
-	err = db.RunDBMigration("", "")
+	err = db.RunDBMigration(".", d)
 	if err != nil {
 		slog.Error("Error in db migration", "Error", err)
 		os.Exit(1)

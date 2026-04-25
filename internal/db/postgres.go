@@ -2,27 +2,28 @@ package db
 
 import (
 	"database/sql"
-	"embed"
+	"log/slog"
 
+	"github.com/1saswata/chess-broadcast-engine/db/migrations"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/lib/pq"
 )
-
-var migrationsFS embed.FS
 
 func InitDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", dsn)
 	return db, err
 }
 
-func RunDBMigration(migrationURL string, dbSource string) error {
-	d, err := iofs.New(migrationsFS, migrationURL)
+func RunDBMigration(migrationURL string, db *sql.DB) error {
+	sourceDriver, err := iofs.New(migrations.FS, migrationURL)
 	if err != nil {
 		return err
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, dbSource)
+	targetDriver, err := postgres.WithInstance(db, &postgres.Config{})
+	m, err := migrate.NewWithInstance("iofs", sourceDriver,
+		"postgres", targetDriver)
 	if err != nil {
 		return err
 	}
@@ -30,5 +31,6 @@ func RunDBMigration(migrationURL string, dbSource string) error {
 	if err != nil && err != migrate.ErrNoChange {
 		return err
 	}
+	slog.Info("Database migrations applied successfully")
 	return nil
 }

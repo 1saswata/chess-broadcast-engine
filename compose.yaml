@@ -42,7 +42,13 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d chessdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   ingest-node:
     build: 
@@ -52,6 +58,7 @@ services:
       AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis:6379
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      DB_URL: "postgres://test:test@postgres:5432/chessdb?sslmode=disable"
     ports:
       - "50051:50051"
       - "8080:8080"
@@ -59,6 +66,8 @@ services:
       RabbitMQ:
         condition: service_healthy
       Redis:
+        condition: service_healthy
+      Postgres:
         condition: service_healthy
 
   broadcast-node:
@@ -76,3 +85,7 @@ services:
         condition: service_healthy
       Redis:
         condition: service_healthy
+      Postgres:
+        condition: service_healthy
+volumes:
+  pgdata:
