@@ -22,12 +22,46 @@ import (
 	"google.golang.org/grpc"
 )
 
-func login() {
+type UserHandler struct {
+	db.UserRepository
+}
+
+func login(uh UserHandler) {
 	mux := http.NewServeMux()
+	mux.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
+		v := struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+			Role     string `json:"role"`
+		}{}
+		err := json.NewDecoder(r.Body).Decode(&v)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		hPass, err := auth.HashPassword(v.Password)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		err = uh.CreateUser(ctx, v.Username, hPass, v.Role)
+		if err != nil {
+			if err == context.DeadlineExceeded {
+				http.Error(w, "Database is slow", http.StatusGatewayTimeout)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+	})
 	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
 		v := struct {
-			Role     string `json:"role"`
-			Match_id int32  `json:"match_id"`
+			Username string `json:"username"`
+			Password string `json:"password"`
+			MatchID  int32  `json:"match_id"`
 		}{}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		err := json.NewDecoder(r.Body).Decode(&v)
@@ -35,7 +69,18 @@ func login() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		token, err := auth.GenerateToken(v.Match_id, v.Role)
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		user, err := uh.GetUserByUsername(ctx, v.Username)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		if !auth.CheckPasswordHash(v.Password, user.PasswordHash) {
+			http.Error(w, "Wrong password", http.StatusUnauthorized)
+			return
+		}
+		token, err := auth.GenerateToken(user.ID, v.MatchID, user.Role)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -54,19 +99,20 @@ func main() {
 		slog.Error("Error creating tracer", "Error", err)
 		os.Exit(1)
 	}
+	var uh UserHandler
 	dbURL := os.Getenv("DB_URL")
-	d, err := db.InitDB(dbURL)
+	uh.D, err = db.InitDB(dbURL)
 	if err != nil {
 		slog.Error("Error in db connection", "Error", err)
 		os.Exit(1)
 	}
-	defer d.Close()
-	err = db.RunDBMigration(".", d)
+	defer uh.D.Close()
+	err = db.RunDBMigration(".", uh.D)
 	if err != nil {
 		slog.Error("Error in db migration", "Error", err)
 		os.Exit(1)
 	}
-	go login()
+	go login(uh)
 	amqpURL := os.Getenv("AMQP_SERVER_URL")
 	if amqpURL == "" {
 		amqpURL = "amqp://guest:guest@localhost:5672/"
