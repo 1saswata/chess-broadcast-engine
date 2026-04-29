@@ -10,10 +10,14 @@ import (
 
 var key = []byte("my-super-secret-key")
 
-func GenerateToken(matchID int32, role string) (string, error) {
+// TODO(saswata): TECH DEBT - Sprint 7
+// Remove matchID from JWT payload once the `matches` table is implemented.
+// Match authorization should be a database/cache lookup, not a stateless claim.
+func GenerateToken(userID string, matchID int32, role string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
+	claims["id"] = userID
 	claims["role"] = role
 	claims["matchID"] = matchID
 	claims["exp"] = time.Now().Add(time.Minute * 60).Unix()
