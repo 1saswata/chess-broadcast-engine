@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -32,5 +33,11 @@ func (u UserRepository) GetUserByUsername(ctx context.Context,
 	ud := User{}
 	row := u.D.QueryRow("SELECT * FROM users WHERE username = $1", username)
 	err := row.Scan(&ud.ID, &ud.UserName, &ud.PasswordHash, &ud.Role, &ud.CreatedAt)
-	return ud, err
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return ud, fmt.Errorf("user not found")
+		}
+		return ud, err
+	}
+	return ud, nil
 }
