@@ -49,6 +49,10 @@ func (u UserRepository) GetUserByUsername(ctx context.Context,
 func (u UserRepository) ArchiveMatch(ctx context.Context, matchID int32,
 	whitePlayerID, blackPlayerID uuid.UUID, moveData [][]byte) error {
 	tx, err := u.D.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 	_, err = tx.Exec(`INSERT INTO matches (id, white_player_id, black_player_id, 
 	status) VALUES ($1, $2, $3, 'completed')`, matchID, whitePlayerID,
 		blackPlayerID)
