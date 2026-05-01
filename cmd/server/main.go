@@ -19,6 +19,8 @@ import (
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
 	"github.com/1saswata/chess-broadcast-engine/internal/server"
 	"github.com/1saswata/chess-broadcast-engine/internal/telemetry"
+	"github.com/google/uuid"
+
 	"google.golang.org/grpc"
 )
 
@@ -26,7 +28,7 @@ type UserHandler struct {
 	db.UserRepository
 }
 
-func login(uh UserHandler) {
+func login(uh UserHandler, rc *cache.RedisCache) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /register", func(w http.ResponseWriter, r *http.Request) {
 		v := struct {
@@ -87,6 +89,43 @@ func login(uh UserHandler) {
 		}
 		fmt.Fprintf(w, "%s", token)
 	})
+	mux.HandleFunc("POST /archive", func(w http.ResponseWriter, r *http.Request) {
+		v := struct {
+			MatchID       int32     `json:"match_id"`
+			WhitePlayerId uuid.UUID `json:"white_player_id"`
+			BlackPlayerID uuid.UUID `json:"black_player_id"`
+		}{}
+		err := json.NewDecoder(r.Body).Decode(&v)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		moveHistory, err := rc.GetMoveHistory(ctx, v.MatchID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = uh.ArchiveMatch(ctx, v.MatchID, v.WhitePlayerId, v.BlackPlayerID,
+			moveHistory)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		key := fmt.Sprintf("match:%d:latest", v.MatchID)
+		err = rc.DeleteKey(ctx, key)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		key = fmt.Sprintf("match:%d:sequence", v.MatchID)
+		err = rc.DeleteKey(ctx, key)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
 	newServer := http.Server{Addr: ":8080", Handler: mux}
 	slog.Error("Error on login", "Error", newServer.ListenAndServe())
 }
@@ -112,7 +151,6 @@ func main() {
 		slog.Error("Error in db migration", "Error", err)
 		os.Exit(1)
 	}
-	go login(uh)
 	amqpURL := os.Getenv("AMQP_SERVER_URL")
 	if amqpURL == "" {
 		amqpURL = "amqp://guest:guest@localhost:5672/"
@@ -131,6 +169,7 @@ func main() {
 		slog.Error("Error connecting to cache", "Error", err)
 		os.Exit(1)
 	}
+	go login(uh, rc)
 	ingestServer := server.NewIngestServer(rp, rc)
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {

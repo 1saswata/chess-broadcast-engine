@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var key = []byte("my-super-secret-key")
@@ -13,7 +14,7 @@ var key = []byte("my-super-secret-key")
 // TODO(saswata): TECH DEBT - Sprint 7
 // Remove matchID from JWT payload once the `matches` table is implemented.
 // Match authorization should be a database/cache lookup, not a stateless claim.
-func GenerateToken(userID string, matchID int32, role string) (string, error) {
+func GenerateToken(userID uuid.UUID, matchID int32, role string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
