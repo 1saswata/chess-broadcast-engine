@@ -20,7 +20,11 @@
         const board = Chessboard('board', config);
         const response = await fetch("http://localhost:8080/login", {
             method: "POST",
-            body: JSON.stringify({"role": "spectator", "match_id": 1}),
+            body: JSON.stringify({
+                "username": "test",
+                "password": "test",
+                "match_id": 1
+            }),
         });
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`);
