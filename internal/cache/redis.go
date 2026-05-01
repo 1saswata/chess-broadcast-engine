@@ -59,3 +59,8 @@ func (rc *RedisCache) IncrementSequence(ctx context.Context, matchID int32) (int
 func (rc *RedisCache) Close() error {
 	return rc.client.Close()
 }
+
+func (rc *RedisCache) DeleteKey(ctx context.Context, k string) error {
+	err := rc.client.Del(ctx, k).Err()
+	return err
+}
