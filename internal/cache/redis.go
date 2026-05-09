@@ -64,3 +64,7 @@ func (rc *RedisCache) DeleteKey(ctx context.Context, k string) error {
 	err := rc.client.Del(ctx, k).Err()
 	return err
 }
+
+func (rc *RedisCache) AllowRequest() {
+
+}
