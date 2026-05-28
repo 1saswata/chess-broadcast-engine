@@ -33,7 +33,10 @@ func NewAuthInterceptor(rc *cache.RedisCache) grpc.UnaryServerInterceptor {
 		if claims["role"] != "grandmaster" {
 			return nil, status.Errorf(codes.PermissionDenied, "unauthorized")
 		}
-		id := claims["id"].(string)
+		id, ok := claims["id"].(string)
+		if !ok || id == "" {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid user id")
+		}
 		allow, err := rc.AllowRequest(ctx, id, 2, 1)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error")
@@ -43,27 +46,4 @@ func NewAuthInterceptor(rc *cache.RedisCache) grpc.UnaryServerInterceptor {
 		}
 		return nil, status.Errorf(codes.ResourceExhausted, "rate limit exceeded")
 	}
-}
-
-func AuthInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler) (resp any, err error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated,
-			"metadata is not provided")
-	}
-	authHeader := md["authorization"]
-	if len(authHeader) == 0 {
-		return nil, status.Errorf(codes.Unauthenticated,
-			"authorization token is not provided")
-	}
-	token := strings.TrimPrefix(authHeader[0], "Bearer ")
-	claims, err := auth.ValidateToken(token)
-	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
-	}
-	if claims["role"] != "grandmaster" {
-		return nil, status.Errorf(codes.PermissionDenied, "unauthorized")
-	}
-	return handler(ctx, req)
 }
