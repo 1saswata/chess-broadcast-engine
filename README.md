@@ -51,5 +51,7 @@ docker compose up --build -d```
 
 **Resilience Engineering:** The architecture currently assumes infrastructure health. Implementing the Circuit Breaker Pattern and Exponential Backoff Retries for Redis and RabbitMQ connections would drastically improve fault tolerance during network partitions.
 
+**Match Lifecycle & Archival Trigger:** Currently, match creation and archival are handled via manual HTTP triggers rather than an automated Matchmaking Lobby or Checkmate-detection state machine. Future iterations will include a concurrent Matchmaking worker to initialize database state prior to gameplay, and a TTL-based background sweeper to automatically archive abandoned games from the Redis cache.
+
 
 ---
