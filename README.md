@@ -30,7 +30,8 @@ For a comprehensive breakdown of the system design, data flow, concurrency model
 ### Bootstrapping the Cluster
 Run the following command to spin up the entire distributed cluster (Ingest Node, Broadcast Node, RabbitMQ, Redis, and Jaeger):
 ```bash
-docker compose up --build -d```
+docker compose up --build -d
+```
 
 ### Endpoints
 
