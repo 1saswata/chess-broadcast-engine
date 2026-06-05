@@ -92,7 +92,7 @@ func (rc *RedisCache) AllowRequest(ctx context.Context, userID string, limit int
 
 func (rc *RedisCache) AuthorizePlayers(ctx context.Context, matchID int32,
 	whiteID, blackID string) error {
-	err := rc.client.HSet(ctx, fmt.Sprintf("match:%:players", matchID),
+	err := rc.client.HSet(ctx, fmt.Sprintf("match:%d:players", matchID),
 		whiteID, "PLAYER_WHITE",
 		blackID, "PLAYER_BLACK",
 	).Err()

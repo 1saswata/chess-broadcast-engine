@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/1saswata/chess-broadcast-engine/internal/auth"
@@ -108,4 +109,41 @@ func (s *APIServer) HandleArchive(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *APIServer) HandleProvisionMatch(w http.ResponseWriter, r *http.Request) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "missing auth header", http.StatusUnauthorized)
+		return
+	}
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	claims, err := auth.ValidateToken(token)
+	if err != nil || claims["role"] != "admin" {
+		http.Error(w, "admin access required", http.StatusForbidden)
+		return
+	}
+	v := struct {
+		MatchID       int32     `json:"match_id"`
+		WhitePlayerId uuid.UUID `json:"white_player_id"`
+		BlackPlayerID uuid.UUID `json:"black_player_id"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	if err := s.Repo.ProvisionMatch(ctx, v.MatchID, v.WhitePlayerId,
+		v.BlackPlayerID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := s.Cache.AuthorizePlayers(ctx, v.MatchID, v.WhitePlayerId.String(),
+		v.BlackPlayerID.String()); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }
