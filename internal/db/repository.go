@@ -83,3 +83,11 @@ func (u UserRepository) ArchiveMatch(ctx context.Context, matchID int32,
 	}
 	return nil
 }
+
+func (u UserRepository) ProvisionMatch(ctx context.Context, matchID int32,
+	whiteID, blackID uuid.UUID) error {
+	_, err := u.D.ExecContext(ctx, `INSERT INTO matches (id, white_player_id, 
+		black_player_id, status) VALUES ($1, $2, $3, 'scheduled')`, matchID,
+		whiteID, blackID)
+	return err
+}

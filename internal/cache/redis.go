@@ -89,3 +89,19 @@ func (rc *RedisCache) AllowRequest(ctx context.Context, userID string, limit int
 	res, err := cmd.Int64()
 	return res == 1, err
 }
+
+func (rc *RedisCache) AuthorizePlayers(ctx context.Context, matchID int32,
+	whiteID, blackID string) error {
+	err := rc.client.HSet(ctx, fmt.Sprintf("match:%d:players", matchID),
+		whiteID, "PLAYER_WHITE",
+		blackID, "PLAYER_BLACK",
+	).Err()
+	return err
+}
+
+func (rc *RedisCache) GetPlayerColor(ctx context.Context, matchID int32,
+	userID string) (string, error) {
+	color, err := rc.client.HGet(ctx, fmt.Sprintf("match:%d:players", matchID),
+		userID).Result()
+	return color, err
+}
