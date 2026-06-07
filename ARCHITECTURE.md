@@ -2,7 +2,6 @@
 
 ### 2. Updated `ARCHITECTURE.md`
 
-```markdown
 # Technical Design Document: Chess Broadcast Engine
 
 ## 1. System Overview
