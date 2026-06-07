@@ -35,8 +35,10 @@ func (u UserRepository) CreateUser(ctx context.Context, username string,
 func (u UserRepository) GetUserByUsername(ctx context.Context,
 	username string) (User, error) {
 	ud := User{}
-	row := u.D.QueryRow("SELECT * FROM users WHERE username = $1", username)
-	err := row.Scan(&ud.ID, &ud.UserName, &ud.PasswordHash, &ud.Role, &ud.CreatedAt)
+	row := u.D.QueryRow(`SELECT id, username, password_hash, role,
+		created_at FROM users WHERE username = $1`, username)
+	err := row.Scan(&ud.ID, &ud.UserName, &ud.PasswordHash, &ud.Role,
+		&ud.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return ud, fmt.Errorf("user not found")

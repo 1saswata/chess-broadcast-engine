@@ -13,6 +13,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+
   Redis:
     image: redis:8.6-alpine
     container_name: redis
@@ -36,15 +37,16 @@ services:
     image: postgres:18-alpine
     container_name: postgres
     environment:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      POSTGRES_DB: chessdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test -d chessdb"]
+      # Updated to use env variables so the healthcheck doesn't fail if credentials change
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -55,10 +57,10 @@ services:
       dockerfile: Dockerfile.server
     container_name: ingest
     environment:
-      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
-      REDIS_URL: redis:6379
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
-      DB_URL: "postgres://test:test@postgres:5432/chessdb?sslmode=disable"
+      AMQP_SERVER_URL: ${AMQP_SERVER_URL}
+      REDIS_URL: ${REDIS_URL}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+      DB_URL: ${DB_URL}
     ports:
       - "50051:50051"
       - "8080:8080"
@@ -75,9 +77,9 @@ services:
       dockerfile: Dockerfile.broadcaster
     container_name: broadcaster
     environment: 
-      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
-      REDIS_URL: redis:6379
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      AMQP_SERVER_URL: ${AMQP_SERVER_URL}
+      REDIS_URL: ${REDIS_URL}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
     ports:
       - "8081:8081"
     depends_on:
@@ -87,5 +89,6 @@ services:
         condition: service_healthy
       Postgres:
         condition: service_healthy
+
 volumes:
   pgdata:

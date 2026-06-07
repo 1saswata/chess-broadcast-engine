@@ -7,6 +7,7 @@ import (
 	"github.com/1saswata/chess-broadcast-engine/internal/auth"
 	"github.com/1saswata/chess-broadcast-engine/internal/cache"
 	"github.com/1saswata/chess-broadcast-engine/internal/pb"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -43,13 +44,18 @@ func NewAuthInterceptor(rc *cache.RedisCache) grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Internal, "internal error")
 		}
 		if !allow {
-			return nil, status.Errorf(codes.ResourceExhausted, "rate limit exceeded")
+			return nil, status.Errorf(codes.ResourceExhausted,
+				"rate limit exceeded")
 		}
 		moveReq, ok := req.(*pb.Move)
 		if ok {
 			assignedColor, err := rc.GetPlayerColor(ctx, moveReq.MatchId, id)
 			if err != nil {
-				return nil, status.Errorf(codes.PermissionDenied, "not authorized")
+				if err == redis.Nil {
+					return nil, status.Errorf(codes.PermissionDenied,
+						"not authorized")
+				}
+				return nil, status.Errorf(codes.Internal, "failed to  verify")
 			}
 			if assignedColor != moveReq.CurrentPlayer.String() {
 				return nil, status.Errorf(codes.PermissionDenied, "wrong color")
